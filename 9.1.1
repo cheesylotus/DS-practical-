@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// A structure to represent an adjacency list node
+struct AdjListNode {
+    int dest;
+    struct AdjListNode* next;
+};
+
+// A structure to represent an adjacency list
+struct AdjList {
+    struct AdjListNode *head;
+};
+
+// A structure to represent a graph
+struct Graph {
+    int V;
+    struct AdjList* array;
+};
+
+// Function to create a new adjacency list node
+struct AdjListNode* newAdjListNode(int dest) {
+    struct AdjListNode* newNode = (struct AdjListNode*) malloc(sizeof(struct AdjListNode));
+    newNode->dest = dest;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to create a graph with V vertices
+struct Graph* createGraph(int V) {
+    struct Graph* graph = (struct Graph*) malloc(sizeof(struct Graph));
+    graph->V = V;
+
+    graph->array = (struct AdjList*) malloc(V * sizeof(struct AdjList));
+
+    for (int i = 0; i < V; i++) {
+        graph->array[i].head = NULL;
+    }
+
+    return graph;
+}
+
+// ✅ Insert edge in sorted order
+void addEdge(struct Graph* graph, int src, int dest) {
+    struct AdjListNode* newNode = newAdjListNode(dest);
+
+    struct AdjListNode* curr = graph->array[src].head;
+
+    // Insert at beginning if list is empty or dest is smallest
+    if (curr == NULL || dest < curr->dest) {
+        newNode->next = curr;
+        graph->array[src].head = newNode;
+        return;
+    }
+
+    // Traverse to find correct position
+    while (curr->next != NULL && curr->next->dest < dest) {
+        curr = curr->next;
+    }
+
+    newNode->next = curr->next;
+    curr->next = newNode;
+}
+
+// DFS utility function
+void DFSUtil(int v, bool visited[], struct Graph* graph) {
+    visited[v] = true;
+    printf("%d ", v);
+
+    struct AdjListNode* temp = graph->array[v].head;
+    while (temp != NULL) {
+        if (!visited[temp->dest]) {
+            DFSUtil(temp->dest, visited, graph);
+        }
+        temp = temp->next;
+    }
+}
+
+// DFS function
+void DFS(struct Graph* graph, int startVertex) {
+    bool *visited = (bool*) malloc(graph->V * sizeof(bool));
+
+    for (int i = 0; i < graph->V; i++)
+        visited[i] = false;
+
+    DFSUtil(startVertex, visited, graph);
+
+    free(visited);
+}
+
+int main() {
+    int V, E;
+
+    // Read vertices and edges
+    if (scanf("%d %d", &V, &E) != 2)
+        return 1;
+
+    struct Graph* graph = createGraph(V);
+
+    // Read edges
+    for (int i = 0; i < E; i++) {
+        int src, dest;
+        scanf("%d %d", &src, &dest);
+        addEdge(graph, src, dest);
+    }
+
+    int startNode;
+    scanf("%d", &startNode);
+
+    // Perform DFS
+    DFS(graph, startNode);
+
+    return 0;
+}
